@@ -17,7 +17,8 @@ SOURCES = \
 	src/main.c \
 	src/capture.c \
 	src/packet.c \
-	src/dns.c
+	src/dns.c \
+	src/presentation.c
 
 TEST_TARGET = build/tests/querytrail_tests
 
