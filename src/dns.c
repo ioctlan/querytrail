@@ -235,6 +235,9 @@ bool dns_parse_resource_record(
         return false;
     }
 
+    parsed.rdata_offset = pos;
+    parsed.rdata = packet + pos;
+
     // Point directly into the original DNS packet.
     parsed.rdata = packet + pos;
 
@@ -286,4 +289,50 @@ bool dns_format_address(
         buffer,
         buffer_size
     ) != NULL;
+}
+
+bool dns_format_cname(
+    const uint8_t *packet,
+    size_t packet_len,
+    const struct dns_resource_record *record,
+    char *buffer,
+    size_t buffer_size
+)
+{
+    if (packet == NULL || record == NULL ||
+        buffer == NULL || buffer_size == 0) {
+        return false;
+    }
+
+    // Only CNAME records are supported.
+    if (record->type != 5) {
+        return false;
+    }
+
+    // Ensure the RDATA range is within the packet.
+    if (record->rdata_offset > packet_len ||
+        (size_t)record->rdlength >
+            packet_len - record->rdata_offset) {
+        return false;
+    }
+
+    // Start decoding at the beginning of the CNAME RDATA.
+    size_t offset = record->rdata_offset;
+
+    if (!dns_parse_name(
+        packet,
+        packet_len,
+        &offset,
+        buffer,
+        buffer_size
+    )) {
+        return false;
+    }
+
+    // The encoded name must consume exactly RDLENGTH bytes.
+    if (offset != record->rdata_offset + record->rdlength) {
+        return false;
+    }
+
+    return true;
 }

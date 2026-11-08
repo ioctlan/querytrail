@@ -43,6 +43,7 @@ struct dns_resource_record {
     uint32_t ttl;
     uint16_t rdlength;
     const uint8_t *rdata;
+    size_t rdata_offset;
 };
 
 bool dns_parse_resource_record(
@@ -53,6 +54,14 @@ bool dns_parse_resource_record(
 );
 
 bool dns_format_address(
+    const struct dns_resource_record *record,
+    char *buffer,
+    size_t buffer_size
+);
+
+bool dns_format_cname(
+    const uint8_t *packet,
+    size_t packet_len,
     const struct dns_resource_record *record,
     char *buffer,
     size_t buffer_size
