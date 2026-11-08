@@ -40,14 +40,6 @@ int capture_run(
         return 1;
     }
 
-    printf("Successfully opened %s\n", interface);
-
-    printf("Link type: %s\n",
-        pcap_datalink_val_to_name(link_type));
-
-    printf("Description: %s\n",
-        pcap_datalink_val_to_description(link_type));
-
     struct pcap_pkthdr *header;
     const u_char *packet;
 

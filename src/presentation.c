@@ -16,14 +16,14 @@
 static const char *dns_type_name(uint16_t type)
 {
     switch (type) {
-        case 1:   return "A";
-        case 2:   return "NS";
-        case 5:   return "CNAME";
+        case DNS_TYPE_A:   return "A";
+        case DNS_TYPE_NS:   return "NS";
+        case DNS_TYPE_CNAME:   return "CNAME";
         case 6:   return "SOA";
         case 12:  return "PTR";
-        case 15:  return "MX";
+        case DNS_TYPE_MX:  return "MX";
         case 16:  return "TXT";
-        case 28:  return "AAAA";
+        case DNS_TYPE_AAAA:  return "AAAA";
         case 33:  return "SRV";
         case 41:  return "OPT";
         case 43:  return "DS";
@@ -69,24 +69,23 @@ void presentation_dns_message(
 
     bool is_response = (message->header.flags & DNS_FLAG_QR) != 0;
 
-    printf("\n========== DNS %s ==========\n",
-           is_response ? "RESPONSE" : "QUERY");
+    printf("%s %s:%u -> %s:%u\n",
+        is_response ? "RESPONSE" : "QUERY",
+        src_ip, src_port,
+        dst_ip, dst_port);
+
+    printf("  ID: 0x%04x\n", message->header.id);
 
     if (is_response) {
         uint16_t response_code = message->header.flags & 0x000F;
 
-        printf("Status: %s (%u)\n",
+        printf("  Status: %s (%u)\n",
             dns_response_code_name(response_code),
             response_code);
     }
 
-    printf("Transaction ID: 0x%04x\n", message->header.id);
-
-    printf("Source: %s:%u\n", src_ip, src_port);
-    printf("Destination: %s:%u\n", dst_ip, dst_port);
-
     for (size_t i = 0; i < message->header.qdcount; i++) {
-        printf("Question: %s (%s)\n",
+        printf("  Question: %s %s\n",
             message->questions[i].name,
             dns_type_name(message->questions[i].qtype));
     }
@@ -96,36 +95,34 @@ void presentation_dns_message(
 
         char formatted[DNS_NAME_MAX_LENGTH];
 
-        printf("Answer: %s ", record->name);
-
+        if (i == 0) {
+            printf("  Answers:\n");
+        }
         if (record->type == DNS_TYPE_A ||
             record->type == DNS_TYPE_AAAA) {
-
             if (dns_format_address(
                     record,
                     formatted,
                     sizeof(formatted))) {
-                printf("%s\n", formatted);
+                printf("    %s\n", formatted);
             } else {
                 printf("[invalid address record]\n");
             }
 
         } else if (record->type == DNS_TYPE_CNAME) {
-
             if (dns_format_cname(
                     message->packet,
                     message->packet_len,
                     record,
                     formatted,
                     sizeof(formatted))) {
-                printf("CNAME %s\n", formatted);
+                printf("    CNAME %s\n", formatted);
             } else {
                 printf("[invalid CNAME record]\n");
             }
         } else if (record->type == DNS_TYPE_MX) {
 
             uint16_t preference;
-
             if (dns_format_mx(
                     message->packet,
                     message->packet_len,
@@ -134,7 +131,7 @@ void presentation_dns_message(
                     formatted,
                     sizeof(formatted))) {
 
-                printf("MX %u %s\n", preference, formatted);
+                printf("    MX %u %s\n", preference, formatted);
 
             } else {
                 printf("[invalid MX record]\n");
@@ -143,6 +140,5 @@ void presentation_dns_message(
             printf("[record type %s]\n", dns_type_name(record->type));
         }
     }
-
-    printf("============================\n\n");
+    printf("\n");
 }

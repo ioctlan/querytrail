@@ -81,9 +81,6 @@ static void process_udp(
     const uint8_t *dns_payload = udp + PACKET_UDP_HEADER_SIZE;
     size_t dns_payload_len = udp_len - PACKET_UDP_HEADER_SIZE;
 
-    printf("%s:%u -> %s:%u\n",
-           src_ip, src_port, dst_ip, dst_port);
-
     process_dns(
         dns_payload,
         dns_payload_len,

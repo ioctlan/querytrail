@@ -15,7 +15,7 @@ static void print_usage(const char *program)
 
 int main(int argc, char *argv[])
 {
-    printf("querytrail v%s\n", QUERYTRAIL_VERSION);
+    printf("querytrail v%s\n\n", QUERYTRAIL_VERSION);
 
     if (geteuid() != 0) {
         fprintf(stderr, "Error: querytrail must be run with elevated privileges.\n");
