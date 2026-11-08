@@ -10,7 +10,7 @@ TARGET = querytrail
 SOURCES = src/main.c src/dns.c
 
 TEST_TARGET = build/tests/querytrail_tests
-TEST_SOURCES = tests/test_main.c tests/test_dns_header.c src/dns.c
+TEST_SOURCES = tests/test_main.c tests/test_dns_header.c tests/test_dns_question.c src/dns.c
 
 .PHONY: all test clean
 
