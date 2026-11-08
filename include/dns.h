@@ -67,6 +67,15 @@ bool dns_format_cname(
     size_t buffer_size
 );
 
+bool dns_format_mx(
+    const uint8_t *packet,
+    size_t packet_len,
+    const struct dns_resource_record *record,
+    uint16_t *preference,
+    char *exchange,
+    size_t exchange_size
+);
+
 struct dns_message {
     struct dns_header header;
 

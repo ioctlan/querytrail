@@ -22,6 +22,7 @@ void test_dns_message_multiple_answers(void);
 void test_dns_message_malformed_question(void);
 void test_dns_message_trailing_bytes(void);
 void test_dns_free_message(void);
+void test_dns_format_mx(void);
 
 int main(void)
 {
@@ -49,6 +50,7 @@ int main(void)
     test_dns_message_malformed_question();
     test_dns_message_trailing_bytes();
     test_dns_free_message();
+    test_dns_format_mx();
 
     printf("\nAll tests passed!\n");
 

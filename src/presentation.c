@@ -5,7 +5,12 @@
 #define DNS_FLAG_QR 0x8000
 
 #define DNS_TYPE_A 1
+#define DNS_TYPE_NS 2
 #define DNS_TYPE_CNAME 5
+#define DNS_TYPE_SOA 6
+#define DNS_TYPE_PTR 12
+#define DNS_TYPE_MX 15
+#define DNS_TYPE_TXT 16
 #define DNS_TYPE_AAAA 28
 
 static const char *dns_type_name(uint16_t type)
@@ -117,7 +122,23 @@ void presentation_dns_message(
             } else {
                 printf("[invalid CNAME record]\n");
             }
+        } else if (record->type == DNS_TYPE_MX) {
 
+            uint16_t preference;
+
+            if (dns_format_mx(
+                    message->packet,
+                    message->packet_len,
+                    record,
+                    &preference,
+                    formatted,
+                    sizeof(formatted))) {
+
+                printf("MX %u %s\n", preference, formatted);
+
+            } else {
+                printf("[invalid MX record]\n");
+            }
         } else {
             printf("[record type %s]\n", dns_type_name(record->type));
         }

@@ -29,6 +29,7 @@ TEST_SOURCES = \
 	tests/test_dns_record.c \
 	tests/test_dns_cname.c \
 	tests/test_dns_message.c \
+	tests/test_dns_mx.c \
 	src/dns.c
 
 .PHONY: all test clean

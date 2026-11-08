@@ -292,6 +292,55 @@ bool dns_format_address(
     ) != NULL;
 }
 
+bool dns_format_mx(
+    const uint8_t *packet,
+    size_t packet_len,
+    const struct dns_resource_record *record,
+    uint16_t *preference,
+    char *exchange,
+    size_t exchange_size
+)
+{
+    if (packet == NULL || record == NULL ||
+        preference == NULL || exchange == NULL ||
+        exchange_size == 0) {
+        return false;
+    }
+
+    if (record->type != 15) {
+        return false;
+    }
+
+    if (record->rdlength < 3 ||
+        record->rdata_offset > packet_len ||
+        (size_t)record->rdlength >
+            packet_len - record->rdata_offset) {
+        return false;
+    }
+
+    size_t offset = record->rdata_offset;
+
+    *preference = read_be16(packet + offset);
+
+    offset += 2;
+
+    if (!dns_parse_name(
+        packet,
+        packet_len,
+        &offset,
+        exchange,
+        exchange_size
+    )) {
+        return false;
+    }
+
+    if (offset != record->rdata_offset + record->rdlength) {
+        return false;
+    }
+
+    return true;
+}
+
 bool dns_format_cname(
     const uint8_t *packet,
     size_t packet_len,
