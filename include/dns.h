@@ -51,5 +51,12 @@ bool dns_parse_resource_record(
     size_t *offset,
     struct dns_resource_record *record
 );
+
+bool dns_format_address(
+    const struct dns_resource_record *record,
+    char *buffer,
+    size_t buffer_size
+);
+
 #endif
 

@@ -1,4 +1,5 @@
 
+#include <arpa/inet.h>
 #include <assert.h>
 #include <stdint.h>
 #include <string.h>
@@ -115,4 +116,100 @@ void test_dns_resource_record_invalid(void)
     ));
 
     assert(offset == 0);
+}
+
+void test_dns_format_a_record(void)
+{
+    const uint8_t ip[] = {93, 184, 216, 34};
+
+    struct dns_resource_record record = {
+        .type = 1,
+        .rdlength = 4,
+        .rdata = ip
+    };
+
+    char address[16];
+
+    assert(dns_format_address(
+        &record, address, sizeof(address)
+    ));
+
+    assert(strcmp(address, "93.184.216.34") == 0);
+}
+
+void test_dns_format_aaaa_record(void)
+{
+    const uint8_t ip[] = {
+        0x20, 0x01, 0x0D, 0xB8,
+        0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x01
+    };
+
+    struct dns_resource_record record = {
+        .type = 28,
+        .rdlength = 16,
+        .rdata = ip
+    };
+
+    char address[INET6_ADDRSTRLEN];
+
+    assert(dns_format_address(
+        &record, address, sizeof(address)
+    ));
+
+    assert(strcmp(address, "2001:db8::1") == 0);
+}
+
+void test_dns_format_address_invalid(void)
+{
+    char address[INET6_ADDRSTRLEN];
+
+    // A record with an invalid length.
+    const uint8_t invalid_ipv4[] = {192, 168, 1};
+
+    struct dns_resource_record a_record = {
+        .type = 1,
+        .rdlength = 3,
+        .rdata = invalid_ipv4
+    };
+
+    assert(!dns_format_address(
+        &a_record, address, sizeof(address)
+    ));
+
+    // AAAA record with an invalid length.
+    const uint8_t invalid_ipv6[] = {0x20, 0x01};
+
+    struct dns_resource_record aaaa_record = {
+        .type = 28,
+        .rdlength = 2,
+        .rdata = invalid_ipv6
+    };
+
+    assert(!dns_format_address(
+        &aaaa_record, address, sizeof(address)
+    ));
+
+    // Unsupported record type: CNAME.
+    struct dns_resource_record cname_record = {
+        .type = 5,
+        .rdlength = 4,
+        .rdata = invalid_ipv4
+    };
+
+    assert(!dns_format_address(
+        &cname_record, address, sizeof(address)
+    ));
+
+    // NULL RDATA.
+    struct dns_resource_record null_record = {
+        .type = 1,
+        .rdlength = 4,
+        .rdata = NULL
+    };
+
+    assert(!dns_format_address(
+        &null_record, address, sizeof(address)
+    ));
 }

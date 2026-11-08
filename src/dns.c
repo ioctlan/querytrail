@@ -1,4 +1,7 @@
+#include <arpa/inet.h>
 #include <string.h>
+#include <sys/socket.h>
+
 #include "dns.h"
 
 static uint16_t read_be16(const uint8_t *data)
@@ -242,4 +245,45 @@ bool dns_parse_resource_record(
     *offset = pos;
 
     return true;
+}
+
+bool dns_format_address(
+    const struct dns_resource_record *record,
+    char *buffer,
+    size_t buffer_size
+)
+{
+    if (record == NULL || buffer == NULL || buffer_size == 0) {
+        return false;
+    }
+
+    int address_family;
+    size_t expected_length;
+
+    switch (record->type) {
+        case 1: // A record (IPv4)
+            address_family = AF_INET;
+            expected_length = 4;
+            break;
+
+        case 28: // AAAA record (IPv6)
+            address_family = AF_INET6;
+            expected_length = 16;
+            break;
+
+        default:
+            return false;
+    }
+
+    if (record->rdata == NULL ||
+        record->rdlength != expected_length) {
+        return false;
+    }
+
+    return inet_ntop(
+        address_family,
+        record->rdata,
+        buffer,
+        buffer_size
+    ) != NULL;
 }
