@@ -1,0 +1,33 @@
+# Compiled binaries
+querytrail
+*.o
+*.a
+*.so
+*.dylib
+
+# Build directories
+build/
+dist/
+
+# Test artifacts
+*.gcda
+*.gcno
+*.gcov
+
+# Debugging
+core
+core.*
+
+# Editor and IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+
+# Temporary files
+*.tmp
+*.log
+
