@@ -1,4 +1,5 @@
 #include <arpa/inet.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
 
@@ -335,4 +336,156 @@ bool dns_format_cname(
     }
 
     return true;
+}
+
+void dns_free_message(struct dns_message *message)
+{
+    if (message == NULL) {
+        return;
+    }
+
+    free(message->questions);
+    free(message->answers);
+    free(message->authorities);
+    free(message->additionals);
+
+    memset(message, 0, sizeof(*message));
+}
+
+bool dns_parse_message(
+    const uint8_t *packet,
+    size_t packet_len,
+    struct dns_message *message
+)
+{
+    if (packet == NULL || message == NULL) {
+        return false;
+    }
+
+    struct dns_message parsed = {0};
+
+    // Parse the DNS header.
+    if (!dns_parse_header(
+        packet,
+        packet_len,
+        &parsed.header
+    )) {
+        return false;
+    }
+
+    size_t offset = DNS_HEADER_SIZE;
+
+    // Allocate memory for questions.
+    if (parsed.header.qdcount > 0) {
+        parsed.questions = calloc(
+            parsed.header.qdcount,
+            sizeof(*parsed.questions)
+        );
+
+        if (parsed.questions == NULL) {
+            goto error;
+        }
+    }
+
+    // Allocate memory for answers.
+    if (parsed.header.ancount > 0) {
+        parsed.answers = calloc(
+            parsed.header.ancount,
+            sizeof(*parsed.answers)
+        );
+
+        if (parsed.answers == NULL) {
+            goto error;
+        }
+    }
+
+    // Allocate memory for authority records.
+    if (parsed.header.nscount > 0) {
+        parsed.authorities = calloc(
+            parsed.header.nscount,
+            sizeof(*parsed.authorities)
+        );
+
+        if (parsed.authorities == NULL) {
+            goto error;
+        }
+    }
+
+    // Allocate memory for additional records.
+    if (parsed.header.arcount > 0) {
+        parsed.additionals = calloc(
+            parsed.header.arcount,
+            sizeof(*parsed.additionals)
+        );
+
+        if (parsed.additionals == NULL) {
+            goto error;
+        }
+    }
+
+    // Parse questions.
+    for (size_t i = 0; i < parsed.header.qdcount; i++) {
+        if (!dns_parse_question(
+            packet,
+            packet_len,
+            &offset,
+            &parsed.questions[i]
+        )) {
+            goto error;
+        }
+    }
+
+    // Parse answer records.
+    for (size_t i = 0; i < parsed.header.ancount; i++) {
+        if (!dns_parse_resource_record(
+            packet,
+            packet_len,
+            &offset,
+            &parsed.answers[i]
+        )) {
+            goto error;
+        }
+    }
+
+    // Parse authority records.
+    for (size_t i = 0; i < parsed.header.nscount; i++) {
+        if (!dns_parse_resource_record(
+            packet,
+            packet_len,
+            &offset,
+            &parsed.authorities[i]
+        )) {
+            goto error;
+        }
+    }
+
+    // Parse additional records.
+    for (size_t i = 0; i < parsed.header.arcount; i++) {
+        if (!dns_parse_resource_record(
+            packet,
+            packet_len,
+            &offset,
+            &parsed.additionals[i]
+        )) {
+            goto error;
+        }
+    }
+
+    // Reject unexpected trailing bytes.
+    if (offset != packet_len) {
+        goto error;
+    }
+
+    // Preserve the original packet for compressed-name decoding.
+    parsed.packet = packet;
+    parsed.packet_len = packet_len;
+
+    // Commit the completed message.
+    *message = parsed;
+
+    return true;
+
+error:
+    dns_free_message(&parsed);
+    return false;
 }

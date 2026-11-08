@@ -16,6 +16,12 @@ void test_dns_cname_wrong_type(void);
 void test_dns_cname_invalid_rdlength(void);
 void test_dns_cname_rdlength_mismatch(void);
 void test_dns_cname_invalid_pointer(void);
+void test_dns_parse_message(void);
+void test_dns_message_multiple_questions(void);
+void test_dns_message_multiple_answers(void);
+void test_dns_message_malformed_question(void);
+void test_dns_message_trailing_bytes(void);
+void test_dns_free_message(void);
 
 int main(void)
 {
@@ -37,6 +43,12 @@ int main(void)
     test_dns_cname_invalid_rdlength();
     test_dns_cname_rdlength_mismatch();
     test_dns_cname_invalid_pointer();
+    test_dns_parse_message();
+    test_dns_message_multiple_questions();
+    test_dns_message_multiple_answers();
+    test_dns_message_malformed_question();
+    test_dns_message_trailing_bytes();
+    test_dns_free_message();
 
     printf("\nAll tests passed!\n");
 

@@ -67,5 +67,25 @@ bool dns_format_cname(
     size_t buffer_size
 );
 
+struct dns_message {
+    struct dns_header header;
+
+    struct dns_question *questions;
+    struct dns_resource_record *answers;
+    struct dns_resource_record *authorities;
+    struct dns_resource_record *additionals;
+
+    const uint8_t *packet;
+    size_t packet_len;
+};
+
+bool dns_parse_message(
+    const uint8_t *packet,
+    size_t packet_len,
+    struct dns_message *message
+);
+
+void dns_free_message(struct dns_message *message);
+
 #endif
 
