@@ -175,3 +175,71 @@ bool dns_parse_question(
 
     return true;
 }
+
+static uint32_t read_be32(const uint8_t *data)
+{
+    return ((uint32_t)data[0] << 24) |
+           ((uint32_t)data[1] << 16) |
+           ((uint32_t)data[2] << 8)  |
+           (uint32_t)data[3];
+}
+
+
+bool dns_parse_resource_record(
+    const uint8_t *packet,
+    size_t packet_len,
+    size_t *offset,
+    struct dns_resource_record *record
+)
+{
+    if (packet == NULL || offset == NULL || record == NULL) {
+        return false;
+    }
+
+    struct dns_resource_record parsed = {0};
+    size_t pos = *offset;
+
+    // Parse the resource record's domain name.
+    if (!dns_parse_name(
+        packet,
+        packet_len,
+        &pos,
+        parsed.name,
+        sizeof(parsed.name)
+    )) {
+        return false;
+    }
+
+    // TYPE (2) + CLASS (2) + TTL (4) + RDLENGTH (2)
+    if (pos > packet_len || packet_len - pos < 10) {
+        return false;
+    }
+
+    parsed.type = read_be16(packet + pos);
+    pos += 2;
+
+    parsed.class = read_be16(packet + pos);
+    pos += 2;
+
+    parsed.ttl = read_be32(packet + pos);
+    pos += 4;
+
+    parsed.rdlength = read_be16(packet + pos);
+    pos += 2;
+
+    // Ensure the complete RDATA is available.
+    if ((size_t)parsed.rdlength > packet_len - pos) {
+        return false;
+    }
+
+    // Point directly into the original DNS packet.
+    parsed.rdata = packet + pos;
+
+    pos += parsed.rdlength;
+
+    // Commit only after successful parsing.
+    *record = parsed;
+    *offset = pos;
+
+    return true;
+}

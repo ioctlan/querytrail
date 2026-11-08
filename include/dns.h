@@ -36,5 +36,20 @@ bool dns_parse_question(
     struct dns_question *question
 );
 
+struct dns_resource_record {
+    char name[DNS_NAME_MAX_LENGTH];
+    uint16_t type;
+    uint16_t class;
+    uint32_t ttl;
+    uint16_t rdlength;
+    const uint8_t *rdata;
+};
+
+bool dns_parse_resource_record(
+    const uint8_t *packet,
+    size_t packet_len,
+    size_t *offset,
+    struct dns_resource_record *record
+);
 #endif
 

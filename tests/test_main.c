@@ -5,6 +5,8 @@ void test_dns_question(void);
 void test_dns_question_compression(void);
 void test_dns_question_invalid_compression(void);
 void test_dns_question_pointer_chain(void);
+void test_dns_resource_record(void);
+void test_dns_resource_record_invalid(void);
 
 int main(void)
 {
@@ -15,6 +17,8 @@ int main(void)
     test_dns_question_compression();
     test_dns_question_invalid_compression();
     test_dns_question_pointer_chain();
+    test_dns_resource_record();
+    test_dns_resource_record_invalid();
 
     printf("\nAll tests passed!\n");
 
